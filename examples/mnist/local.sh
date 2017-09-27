@@ -19,14 +19,14 @@ arg="$@"
 export DMLC_PS_ROOT_URI='127.0.0.1'
 export DMLC_PS_ROOT_PORT=8011
 export DMLC_ROLE='scheduler'
-/home/zrji/ps-server/tests/test_connection &
+/home/student/ps-lite-sj/tests/test_connection &
 
 
 # start servers
 export DMLC_ROLE='server'
 for ((i=0; i<DMLC_NUM_SERVER; ++i)); do
     export HEAPPROFILE=./S${i}
-    /home/zrji/ps-server/tests/test_connection &
+    /home/student/ps-lite-sj/tests/test_connection &
 done
 
 # start workers
