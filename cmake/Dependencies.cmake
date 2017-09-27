@@ -39,6 +39,22 @@ include("cmake/External/gflags.cmake")
 list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${GFLAGS_INCLUDE_DIRS})
 list(APPEND Caffe_LINKER_LIBS PUBLIC ${GFLAGS_LIBRARIES})
 
+
+
+# ---[ Parameter Server
+list(APPEND Caffe_LINKER_LIBS PUBLIC /home/zrji/ps-lite/build/libpslite.a)
+
+
+find_path ( ZMQ_INCLUDE_DIR zmq.h )
+find_library ( ZMQ_LIBRARY NAMES zmq )
+
+set ( ZMQ_LIBRARIES ${ZMQ_LIBRARY} )
+set ( ZMQ_INCLUDE_DIRS ${ZMQ_INCLUDE_DIR} )
+
+list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${ZMQ_INCLUDE_DIRS})
+list(APPEND Caffe_LINKER_LIBS PUBLIC ${ZMQ_LIBRARIES})
+
+
 # ---[ Google-protobuf
 include(cmake/ProtoBuf.cmake)
 

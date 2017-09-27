@@ -5,6 +5,7 @@
 #include "caffe/util/hdf5.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
+#include "caffe/ps/ps.h"
 
 namespace caffe {
 
@@ -106,13 +107,117 @@ void SGDSolver<Dtype>::ApplyUpdate() {
         << ", lr = " << rate;
   }
   ClipGradients();
-  for (int param_id = 0; param_id < this->net_->learnable_params().size();
-       ++param_id) {
-    Normalize(param_id);
-    Regularize(param_id);
-    ComputeUpdateValue(param_id, rate);
-  }
-  this->net_->Update();
+
+
+#define SJ
+#ifdef SJ
+  
+    const vector<Blob<Dtype>*>& net_params = this->net_->learnable_params();
+  
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+    ++param_id) {
+      Normalize(param_id);
+      Regularize(param_id);
+      ComputeUpdateValue(param_id, rate);
+    }
+  
+    ps::KVWorker<float> kv(0);
+  
+    
+    int total_parameter = 0;
+  
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+    ++param_id) {
+      total_parameter += net_params[param_id]->count();
+    }
+    
+  
+    //std::vector<Key> keys(this->net_->learnable_params());
+    //std::vector<std::vector<float> > vals(this->net_->learnable_params());
+    
+    std::vector<ps::Key> keys(1, 1);
+    std::vector<float> vals(0);
+    std::vector<int> len(1, total_parameter);
+    
+    
+    //int rank = MyRank();
+  
+    total_parameter = 0;
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+    ++param_id) {
+      const Dtype* param_ = net_params[param_id]->cpu_diff();
+      for (int offset = 0; offset < net_params[param_id]->count(); ++ offset){
+       // keys[total_parameter] = total_parameter;
+        vals.push_back(param_[offset]);
+        //std::cout << param_[offset] << " ";
+        total_parameter++;
+      }
+    }
+  
+    vector<int> ts;
+    ts.push_back(kv.Push(keys, vals, len));
+    std::cout << "finish it!!!!" << std::endl;
+  
+    for (int t : ts) kv.Wait(t);
+  
+    std::cout << "finish wait it!!!!" << std::endl;
+  
+  
+  
+    std::vector<float> weight_;
+    std::vector<int> ret_len;
+    kv.Wait(kv.Pull(keys, &weight_, &ret_len));
+    
+    
+    total_parameter = 0;
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+    ++param_id) {
+      const Dtype* param_ = net_params[param_id]->cpu_diff();
+      for (int offset = 0; offset < net_params[param_id]->count(); ++ offset){
+        if(param_[offset] != weight_[total_parameter]) {
+          std::cout << "Debug info" << std::endl;
+        }
+        total_parameter++;
+        
+  
+      }
+    }
+  
+  
+  //for(v:weight_) {
+    //std::cout << v << " "; 
+  //}
+  
+    std::cout << "total parameter is " << total_parameter;
+    total_parameter = 0;
+    std::cout << "tret_len is " << ret_len.size() << "   " << ret_len[0];
+    
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+    ++param_id) {
+      Dtype* param_ = net_params[param_id]->mutable_cpu_diff();
+      for (int offset = 0; offset < net_params[param_id]->count(); ++ offset){
+        param_[offset] = weight_[total_parameter];
+        total_parameter++;
+      }
+    }
+  
+    this->net_->Update();
+#else
+  
+  
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+         ++param_id) {
+      Normalize(param_id);
+      Regularize(param_id);
+      ComputeUpdateValue(param_id, rate);
+    }
+  
+  
+    ps::KVWorker<float> kv(0);
+  
+  
+    this->net_->Update();
+#endif
 }
 
 template <typename Dtype>
