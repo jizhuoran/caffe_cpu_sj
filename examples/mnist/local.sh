@@ -31,7 +31,7 @@ done
 
 # start workers
 export DMLC_ROLE='worker'
-for ((i=0; i<DMLC_NUM_SERVER; ++i)); do
+for ((i=0; i<DMLC_NUM_WORKER; ++i)); do
     export HEAPPROFILE=./W${i}
     ./build/tools/caffe train --solver=examples/mnist/lenet_solver.prototxt &
 done

@@ -156,19 +156,22 @@ void SGDSolver<Dtype>::ApplyUpdate() {
   
     vector<int> ts;
     ts.push_back(kv.Push(keys, vals, len));
-    std::cout << "finish it!!!!" << std::endl;
+    //std::cout << "finish it!!!!" << std::endl;
   
     for (int t : ts) kv.Wait(t);
   
-    std::cout << "finish wait it!!!!" << std::endl;
+   // std::cout << "finish wait it!!!!" << std::endl;
   
   
   
     std::vector<float> weight_;
     std::vector<int> ret_len;
+
+    //std::cout << "--------before from worker's view, the id is" << ps::MyRank() << std::endl;
     kv.Wait(kv.Pull(keys, &weight_, &ret_len));
     
-    
+    //std::cout << "-----------after from worker's view, the id is" << ps::MyRank() << std::endl;
+    /*
     total_parameter = 0;
     for (int param_id = 0; param_id < this->net_->learnable_params().size();
     ++param_id) {
@@ -182,15 +185,15 @@ void SGDSolver<Dtype>::ApplyUpdate() {
   
       }
     }
-  
+  */
   
   //for(v:weight_) {
     //std::cout << v << " "; 
   //}
   
-    std::cout << "total parameter is " << total_parameter;
+    //std::cout << "total parameter is " << total_parameter;
     total_parameter = 0;
-    std::cout << "tret_len is " << ret_len.size() << "   " << ret_len[0];
+    //std::cout << "tret_len is " << ret_len.size() << "   " << ret_len[0];
     
     for (int param_id = 0; param_id < this->net_->learnable_params().size();
     ++param_id) {

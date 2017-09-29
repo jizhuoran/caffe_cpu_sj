@@ -441,8 +441,9 @@ int main(int argc, char** argv) {
       "  device_query    show GPU diagnostic information\n"
       "  time            benchmark model execution time");
   // Run tool or show usage.
-
+  std::cout << "before this" << std::endl;
   ps::Start();
+  std::cout << "after this" << std::endl;
   caffe::GlobalInit(&argc, &argv);
   if (argc == 2) {
 #ifdef WITH_PYTHON_LAYER
