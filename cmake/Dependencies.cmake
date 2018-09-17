@@ -42,7 +42,7 @@ list(APPEND Caffe_LINKER_LIBS PUBLIC ${GFLAGS_LIBRARIES})
 
 
 # ---[ Parameter Server
-list(APPEND Caffe_LINKER_LIBS PUBLIC /home/student/ps-lite/build/libpslite.a)
+list(APPEND Caffe_LINKER_LIBS PUBLIC /home/zrji/distributed_caffe/ps-lite-sj/build/libps.a)
 
 
 find_path ( ZMQ_INCLUDE_DIR zmq.h )
