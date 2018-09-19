@@ -1,6 +1,6 @@
 #include <string>
 #include <vector>
-
+#include <math.h>
 #include "caffe/sgd_solvers.hpp"
 #include "caffe/util/hdf5.hpp"
 #include "caffe/util/io.hpp"
@@ -194,12 +194,36 @@ void SGDSolver<Dtype>::ApplyUpdate() {
     //std::cout << "total parameter is " << total_parameter;
     total_parameter = 0;
     //std::cout << "tret_len is " << ret_len.size() << "   " << ret_len[0];
-    
+      
+    float numerator = 0;
+    float denominator = 0;
+
+
     for (int param_id = 0; param_id < this->net_->learnable_params().size();
     ++param_id) {
       Dtype* param_ = net_params[param_id]->mutable_cpu_diff();
       for (int offset = 0; offset < net_params[param_id]->count(); ++ offset){
-        param_[offset] = weight_[total_parameter];
+        denominator += pow(weight_[total_parameter], 4);
+        numerator += pow((weight_[total_parameter] * (weight_[total_parameter] - param_[offset])), 2);
+        total_parameter++;
+
+      // std::cout << "The new learning rate is" << numerator << " / " <<  denominator << " = "  << std::endl;
+
+      }
+    }
+
+
+    float lr_new = sqrt(denominator / (numerator + 0.0001));
+
+    // std::cout << "The new learning rate is" << numerator << " / " <<  denominator << " = " << lr_new << std::endl;
+
+    total_parameter = 0;
+
+    for (int param_id = 0; param_id < this->net_->learnable_params().size();
+    ++param_id) {
+      Dtype* param_ = net_params[param_id]->mutable_cpu_diff();
+      for (int offset = 0; offset < net_params[param_id]->count(); ++ offset){
+        param_[offset] = weight_[total_parameter] * lr_new;
         total_parameter++;
       }
     }
